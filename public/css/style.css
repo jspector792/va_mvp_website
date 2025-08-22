@@ -1,0 +1,44 @@
+/* General Reset and Base Styles */
+body {
+  font-family: 'Helvetica', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  line-height: 1.6;
+  color: #333;
+  background-color: #2F2F2F;
+}
+
+/* Header Section */
+header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: #2F2F2F;
+  color: white;
+  margin-bottom: 0%;
+}
+
+/* Adjust header title */
+h1 {
+  color: #ffffff;
+  text-align: left;
+  margin-right: 3%; /* Align with the .content margins */
+  margin-top: 8%;
+  margin-bottom: 3%;
+}
+
+/* Main Content Section */
+.content {
+  margin: 0 auto; /* Center content horizontally */
+  box-sizing: border-box; /* Ensure consistent width calculation */
+  margin-left: 3%;
+  margin-right: 3%;
+}
+
+p {
+  text-align: left;
+  color: #9b9b9b;
+  margin: 10px 0; 
+  margin-bottom: 6%;
+}

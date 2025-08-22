@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dendrogram</title>
+    <style>
+        body {
+            font-family: 'Helvetica' , sans-serif; 
+            margin: 0; /* Remove default margin for full-screen SVG */
+            overflow: hidden; /* Prevent scrollbars from appearing */
+        }
+        svg {
+            display: block; /* Remove unwanted spacing around SVG */
+        }
+    </style>
+    <script>
+        // Function to parse query parameters
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                ancestry: params.get('ancestry'),
+                pvalue: params.get('pvalue'),
+                leftPheno: params.get('leftPheno'),
+                rightPheno: params.get('rightPheno')
+            };
+        }
+
+        // Example usage
+        document.addEventListener('DOMContentLoaded', () => {
+            const { ancestry, pvalue } = getQueryParams();
+            console.log('Ancestry:', ancestry);
+            console.log('P-value:', pvalue);
+
+            // Use these variables to generate the dendrogram
+        });
+    </script>
+    <script src="/js/d3.min.js"></script>
+    <script src="/js/page3.js"></script>
+</head>
+<body>
+    <div id="sankey-container">
+        <!-- SVG for the dendrogram -->
+        <svg width="100%" height="100%"></svg>
+    </div>
+</body>
+</html>
