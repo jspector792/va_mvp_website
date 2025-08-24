@@ -4,6 +4,3 @@ public/data/edgelist_updated_scaled.csv filter=lfs diff=lfs merge=lfs -text
 public/data/node_attributes.csv filter=lfs diff=lfs merge=lfs -text
 public/data/full_dataset_eur.csv filter=lfs diff=lfs merge=lfs -text
 public/data/full_dataset_amr.csv filter=lfs diff=lfs merge=lfs -text
-public/data/full_dataset_eas.csv filter=lfs diff=lfs merge=lfs -text
-public/data/full_dataset_meta.csv filter=lfs diff=lfs merge=lfs -text
-public/data/full_dataset_afr.csv filter=lfs diff=lfs merge=lfs -text
