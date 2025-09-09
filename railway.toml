@@ -1,0 +1,3 @@
+[build]
+# Run before your app is built
+preBuild = "git lfs install && git lfs pull"
