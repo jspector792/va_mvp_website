@@ -37,16 +37,31 @@ let pColumn = `pval.${ancestryLower}`;
 pThreshold = parseFloat(params.pvalue);
 
 async function loadData() {
-    const fileName = `/data/node_files/${centerPheno}.csv`;
-
-    try {
-        let data = await d3.csv(fileName);
-        console.log('Number of rows:', data.length);
-        return data; // Return the data after loading
-    } catch (error) {
-        console.error(`Error loading file ${fileName}:`, error);
-        return null; // Return null in case of an error
+    // Check if the centerPheno requires loading two chunks
+    const splitPhenotypes = ['181', '167', '170', '175'];
+    let data = [];
+    if (splitPhenotypes.includes(centerPheno)) {
+        const file1 = `/data/node_files/${centerPheno}_1.csv`;
+        const file2 = `/data/node_files/${centerPheno}_2.csv`;
+        try {
+            const [data1, data2] = await Promise.all([d3.csv(file1), d3.csv(file2)]);
+            data = data1.concat(data2);
+        } catch (error) {
+            console.error(`Error loading split files for ${centerPheno}:`, error);
+            return null;
+        }
+    } else {
+        const fileName = `/data/node_files/${centerPheno}.csv`;
+        try {
+            data = await d3.csv(fileName);
+        } catch (error) {
+            console.error(`Error loading file ${fileName}:`, error);
+            return null;
+        }
     }
+    console.log('Number of rows:', data.length);
+    return data;
+    
 }
 
 // Call the async function and use the data when it's ready

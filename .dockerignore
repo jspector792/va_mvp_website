@@ -1,0 +1,30 @@
+# Ignore Git stuff
+.git
+.gitignore
+.gitattributes
+.gitmodules
+
+# Ignore Git LFS objects (we only want actual CSVs you pulled locally)
+.git/lfs
+
+# Ignore Dockerfiles themselves
+Dockerfile
+.dockerignore
+
+# Ignore macOS junk
+.DS_Store
+*/.DS_Store
+
+# Ignore node stuff we don’t need to copy (we’ll install fresh inside container)
+node_modules
+npm-debug.log
+yarn.lock
+
+# Ignore build caches
+.cache
+dist
+out
+
+# Ignore environment files
+.env
+.env.local

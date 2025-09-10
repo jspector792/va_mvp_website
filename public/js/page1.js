@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
             return node;
         });
-        
 
         const nodeMap = new Map(nodes.map(node => [node.id, node]));
 
@@ -861,14 +860,8 @@ const infoText = infoContainer.append('div')
     .style('cursor', 'pointer')
     .style('border-radius', '5px')
     .on('click', () => {
-        // download the file /public/data/full_dataset.csv
-        const link = document.createElement('a');
-        link.href = '/data/full_dataset.csv';
-        link.download = 'full_dataset.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        alert('Data downloaded as full_dataset.csv');
+        // redirect people to dropbox
+        window.open('https://www.dropbox.com/scl/fo/214fw3kkq8qy8cyoey14y/AFy-u3ltk3sBKVSif4YfE_8?rlkey=f268undsc9qh0v5fcf6h9qkiy&st=nc1hh56k&dl=0', '_blank');
 
     });
 

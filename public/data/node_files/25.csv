@@ -1,3 +1,1 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:02cd3ea7ee2c6268e092ff37cc92cbb93c8dd2f88efeb29fce618c79df08289b
-size 145
+rsid,chrom,pval.meta,beta.meta,pval.eur,beta.eur,pval.afr,beta.afr,pval.amr,beta.amr,pval.eas,beta.eas,phe_id,phe_label,phe_hex,rsid_hex,phe_cat

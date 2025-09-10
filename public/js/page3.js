@@ -41,11 +41,29 @@ let pColumn = `pval.${ancestryLower}`;
 pThreshold = parseFloat(params.pvalue);
 
 async function loadData() {
-    const leftName = `/data/node_files/${leftPheno}.csv`;
-    const rightName = `/data/node_files/${rightPheno}.csv`;
+    const splitPhenotypes = ['181', '167', '170', '175'];
+    let data = [];
+    if (splitPhenotypes.includes(leftPheno)) {
+        const file1 = `/data/node_files/${leftPheno}_1.csv`;
+        const file2 = `/data/node_files/${leftPheno}_2.csv`;
+        try {
+            const [data1, data2] = await Promise.all([d3.csv(file1), d3.csv(file2)]);
+            data = data1.concat(data2);
+        } catch (error) {
+            console.error(`Error loading split files for ${leftPheno}:`, error);
+            return null;
+        }
+    } else {
+        const fileName = `/data/node_files/${leftPheno}.csv`;
+        try {
+            data = await d3.csv(fileName);
+        } catch (error) {
+            console.error(`Error loading file ${fileName}:`, error);
+            return null;
+        }
+    }
 
     try {
-        let data = await d3.csv(leftName);
         console.log('Number of rows (left):', data.length);
         // filter the data for leftPheno and rightPheno
         data = data.filter(d => d.phe_id === leftPheno || d.phe_id === rightPheno);
