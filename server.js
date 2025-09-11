@@ -1,56 +1,26 @@
-const { createServer } = require('node:http');
-const fs = require('fs');
+const express = require('express');
+const compression = require('compression');
 const path = require('path');
-const url = require('url');
 
-// Use Railway's PORT env var, default to 3000 locally
-// const port = process.env.PORT || 3000;
-const port = 3000;
-// Listen on all interfaces, not just localhost
-const hostname = '0.0.0.0';
+const app = express();
 
-const server = createServer((req, res) => {
-  const parsedUrl = url.parse(req.url);
-  let pathname = parsedUrl.pathname;
-  
-  if (pathname === '/') {
-    pathname = '/index.html';
-  }
+// Enable gzip compression for all responses
+app.use(compression());
 
-  if (pathname.startsWith('/js/') && pathname.endsWith('.html')) {
-    pathname = pathname.replace('/js/', '/');
-  }
+// Serve static files from /public
+app.use(express.static(path.join(__dirname, 'public')));
 
-  let filePath = path.join(__dirname, 'public', pathname);
-  const extname = path.extname(filePath);
-
-  let contentType = 'text/html';
-  switch (extname) {
-    case '.js': contentType = 'text/javascript'; break;
-    case '.css': contentType = 'text/css'; break;
-    case '.json': contentType = 'application/json'; break;
-    case '.png': contentType = 'image/png'; break;
-    case '.jpg': contentType = 'image/jpg'; break;
-  }
-
-  fs.readFile(filePath, (err, content) => {
+// Fallback for unknown routes → serve 404.html if it exists
+app.use((req, res, next) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'), err => {
     if (err) {
-      if (err.code == 'ENOENT') {
-        fs.readFile(path.join(__dirname, 'public', '404.html'), (err, content) => {
-          res.writeHead(404, { 'Content-Type': 'text/html' });
-          res.end(content || '404 Not Found', 'utf-8');
-        });
-      } else {
-        res.writeHead(500);
-        res.end(`Server Error: ${err.code}`);
-      }
-    } else {
-      res.writeHead(200, { 'Content-Type': contentType });
-      res.end(content, 'utf-8');
+      res.status(404).send('404 Not Found');
     }
   });
 });
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+// Railway provides process.env.PORT; fallback to 3000 locally
+const port = process.env.PORT || 3000;
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running at http://0.0.0.0:${port}/`);
 });
