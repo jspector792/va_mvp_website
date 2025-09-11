@@ -4,9 +4,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-  "dev": "nodemon server.js",
-  "copy-d3": "mkdir -p public/js && cp node_modules/d3/dist/d3.min.js public/js/d3.min.js",
-  "postinstall": "npm run copy-d3"
+    "dev": "nodemon server.js",
+    "copy-d3": "mkdir -p public/js && cp node_modules/d3/dist/d3.min.js public/js/d3.min.js",
+    "postinstall": "npm run copy-d3"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +16,8 @@
     "nodemon": "^3.1.10"
   },
   "dependencies": {
-    "d3": "^7.9.0"
+    "compression": "^1.8.1",
+    "d3": "^7.9.0",
+    "express": "^5.1.0"
   }
 }
