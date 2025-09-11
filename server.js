@@ -20,7 +20,7 @@ app.use((req, res, next) => {
 });
 
 // Railway provides process.env.PORT; fallback to 3000 locally
-const port = process.env.PORT || 3000;
+const port = 3000;
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running at http://0.0.0.0:${port}/`);
 });
