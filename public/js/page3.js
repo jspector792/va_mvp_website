@@ -2,7 +2,7 @@
 let leftPheno = null;
 let rightPheno = null;
 let links = [];
-let pThreshold = 1;
+let pThreshold = 1e-4;
 let betaThreshold = 0;
 let betaSign = 0;
 let nodes = [];
@@ -12,7 +12,7 @@ let ancestryToggle = null;
 let ancestryLower = null; // Declare ancestryLower as a global variable, and use let instead of const
 let betaColumn2 = null;
 let pColumn2 = null;
-let pThreshold2 = 1;
+let pThreshold2 = 1e-4;
 let comparison_on_off = false; // Variable to track if comparison mode is on
 let anc1 = null;
 let anc2 = null;
@@ -169,6 +169,8 @@ loadData().then((data) => {
                 }
 
                 const network = initializeNetwork(graphData, betaColumn, pColumn, betaColumn2, pColumn2, comparison_on_off);
+                nodes = network.nodes;
+                links = network.links;
                 const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData, pThreshold2, comparison_on_off);
                 // const categories = filteredEdges.map(l => l.target.category);
                 // const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
@@ -231,16 +233,13 @@ loadData().then((data) => {
                 }
                 console.log('comparison_on_off:', comparison_on_off);
                 const network = initializeNetwork(graphData, betaColumn, pColumn, betaColumn2, pColumn2, comparison_on_off);
+                nodes = network.nodes;
+                links = network.links;
                 const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData, pThreshold2, comparison_on_off);
                 // const categories = filteredEdges.map(l => l.target.category);
                 // const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
 
                 renderNetwork(network.nodes, filteredEdges, graphData, network.width, network.height, leftPheno,rightPheno, network.nodeMap, comparison_on_off);
-
-                if (activeNode) {
-                    console.log('Re-highlighting active node:', activeNode);
-                    highlightNode(activeNode, filteredEdges, comparison_on_off);
-                }
             }, 200); // 200ms debounce delay
         }
 
@@ -298,6 +297,8 @@ loadData().then((data) => {
             }
 
             const network = initializeNetwork(graphData, betaColumn, pColumn);
+            nodes = network.nodes;
+            links = network.links;
             const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
             // const categories = filteredEdges.map(l => l.target.category);
             // const filteredNodes = updateNodes(categories, network.nodes);
@@ -375,28 +376,128 @@ loadData().then((data) => {
             </p>
         `);
 
-        // add a download button to download data as a csv file
-        const downloadButton = infoContainer.append('button')
-            .text('Download Data')
-            .style('display', 'block')
-            .style('margin-top', '10px')
-            .style('background', '#444')
-            .style('color', 'white')
-            .style('border', 'none')
-            .style('padding', '8px 12px')
-            .style('cursor', 'pointer')
-            .style('border-radius', '5px')
-            .on('click', () => {
-                const csvString = d3.csvFormat(graphData);
-                const blob = new Blob([csvString], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'data.csv';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+        // --- Persistent search bar container ---
+        let searchContainer = d3.select('body')
+            .append('div')
+            .attr('id', 'search-bar-container')
+            .style('position', 'absolute')
+            .style('top', '350px')
+            .style('left', '10px')
+            .style('background', 'transparent')
+            .style('padding', '10px')
+            .style('color', 'white');
+
+        searchContainer.html(`
+            <input type="text" id="node-search" placeholder="Search node..." style="width: 180px; padding: 5px;">
+            <div id="search-results" style="background: #222; color: white; margin-top: 2px; max-height: 150px; overflow-y: auto; display: none;"></div>
+        `);
+
+        // --- Helper function to update search results ---
+        function updateSearchResults(query) {
+            const resultsDiv = d3.select('#search-results');
+            resultsDiv.html(''); // clear previous results
+
+            if (!query) {
+                resultsDiv.style('display', 'none');
+                return;
+            }
+
+            // Filter nodes by name or id
+            const matches = nodes.filter(d =>
+                d.id.toLowerCase().includes(query.toLowerCase()) ||
+                (d.label && d.label.toLowerCase().includes(query.toLowerCase()))
+            ).slice(0, 20); // limit to top 20 matches
+
+            if (matches.length === 0) {
+                resultsDiv.style('display', 'none');
+                return;
+            }
+
+            matches.forEach(node => {
+                resultsDiv.append('div')
+                    .text(node.label || node.id)
+                    .style('padding', '2px 5px')
+                    .style('cursor', 'pointer')
+                    .on('click', () => {
+                        d3.select('#node-search').property('value', node.label || node.id);
+                        resultsDiv.style('display', 'none');
+                        // Trigger node highlight
+                        highlightNode(node);
+                    });
             });
+
+            resultsDiv.style('display', 'block');
+        }
+
+        // --- Attach search input event ---
+        d3.select('#node-search').on('input', function () {
+            const query = this.value;
+            updateSearchResults(query);
+        });
+
+        // --- Optional: hide results when clicking outside ---
+        d3.select('body').on('click', function (event) {
+            if (!event.target.closest('#search-bar-container')) {
+                d3.select('#search-results').style('display', 'none');
+            }
+        });
+
+        // add a download button to download data as a csv file
+        // const downloadButton = infoContainer.append('button')
+        //     .text('Download Data')
+        //     .style('display', 'block')
+        //     .style('margin-top', '10px')
+        //     .style('background', '#444')
+        //     .style('color', 'white')
+        //     .style('border', 'none')
+        //     .style('padding', '8px 12px')
+        //     .style('cursor', 'pointer')
+        //     .style('border-radius', '5px')
+        //     .on('click', () => {
+        //         const csvString = d3.csvFormat(graphData);
+        //         const blob = new Blob([csvString], { type: 'text/csv' });
+        //         const url = URL.createObjectURL(blob);
+        //         const a = document.createElement('a');
+        //         a.href = url;
+        //         a.download = 'data.csv';
+        //         document.body.appendChild(a);
+        //         a.click();
+        //         document.body.removeChild(a);
+        //     });
+
+        const downloadButton = infoContainer.append('button')
+        .text('Download Data')
+        .style('display', 'block')
+        .style('margin-top', '10px')
+        .style('background', '#444')
+        .style('color', 'white')
+        .style('border', 'none')
+        .style('padding', '8px 12px')
+        .style('cursor', 'pointer')
+        .style('border-radius', '5px')
+        .on('click', () => {
+            // Assume graphData is the object returned by initializeNetwork
+            // It contains {nodes, links, data, width, height, nodeMap}
+            const exportdata = network;
+
+            // Create a filtered array of rows from data corresponding to links in the current network
+            const linkSet = new Set(exportdata.links.map(l => `${l.source.id}|${l.target.id}`));
+            const filteredData = data.filter(d => linkSet.has(`${d.rsid}|${d.phe_id}`));
+
+            // Convert filteredData to CSV
+            const csvString = d3.csvFormat(filteredData);
+
+            // Trigger download
+            const blob = new Blob([csvString], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'network_data.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
 
         // add a checkbox dropdown menu called compare ancestries
         const compareAncestries = d3.select('body')
@@ -472,6 +573,8 @@ loadData().then((data) => {
                         // If the beta column contains only NaN values, alert the user
                         
                         const network = initializeNetwork(data, betaColumn, pColumn);
+                        nodes = network.nodes;
+                        links = network.links;
                         const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
 
                         renderNetwork(network.nodes, filteredEdges, graphData, network.width, network.height, leftPheno, rightPheno, network.nodeMap, comparison_on_off);
@@ -519,20 +622,20 @@ loadData().then((data) => {
                 }
 
                 const network = initializeNetwork(graphData, betaColumn, pColumn, betaColumn2, pColumn2, comparison_on_off);
+                nodes = network.nodes;
+                links = network.links;
                 const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData, pThreshold2, comparison_on_off);
                 // const categories = filteredEdges.map(l => l.target.category);
                 // const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
 
                 renderNetwork(network.nodes, filteredEdges, graphData, network.width, network.height, leftPheno,rightPheno, network.nodeMap, comparison_on_off);
-
-                if (activeNode) {
-                    highlightNode(activeNode, filteredEdges, comparison_on_off);
-                }
             }
         });
 
             // Initialize the network with the default ancestry
             const network = initializeNetwork(data, betaColumn, pColumn);
+            nodes = network.nodes;
+            links = network.links;
             const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
             // const categories = filteredEdges.map(l => l.target.category);
             // const filteredNodes = updateNodes(categories, network.nodes);
@@ -565,6 +668,28 @@ function updateEdges(pThreshold, betaThreshold, betaSign, links, data, pThreshol
     return filteredEdgesDirection;
     }
 
+
+// Function to highlight a selected node for 5 seconds
+function highlightNode(activeNodeId) {
+    const svg = d3.select('svg');
+    console.log(activeNodeId)
+
+    // Select the label group corresponding to the active node
+    const labelGroup = svg.selectAll('.label-group')
+        .filter(d => d.id === activeNodeId.id);
+
+    // Make it visible
+    labelGroup.transition()
+        .duration(200)
+        .attr('opacity', 1);
+
+    // Fade out after 5 seconds
+    setTimeout(() => {
+        labelGroup.transition()
+            .duration(1000) // fade out duration
+            .attr('opacity', 0);
+    }, 5000);
+}
 function initializeNetwork(data, betaColumn, pColumn, betaColumn2=null, pColumn2=null, comparison_on_off=false) {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -806,7 +931,7 @@ function renderNetwork(nodes, links, data, width, height, leftPheno, rightPheno,
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
         // set the radius to be 3 if the id starts with rs, and 10 otherwise
-        .attr('r', d => d.id.startsWith('rs') ? 10 : 10)
+        .attr('r', d => d.id.startsWith('rs') ? 5 : 10)
         .attr('fill', d => d.color || 'gray')
         // on double click open dendrogram.html in a new tab with the double clicked node as the center node, using the current pvalue and ancestry
         .on('dblclick', (event, d) => {

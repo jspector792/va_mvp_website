@@ -740,13 +740,11 @@ if (!localStorage.getItem('welcomeDismissed')) {
     .style('line-height', '1.6')
     .style('text-align', 'center')
     .html(`
-      <p style="margin-bottom: 16px; font-size: 20px;">Welcome to the website!</p>
-        <p style="margin-bottom: 16px; font-size: 18px;">This is a visualization of the Million Veteran Program Phenotype Network.
-        <br>Use the filters to explore different aspects of the network.</p>
-      <p style="margin-bottom: 16px; font-size: 18px;">Click on a node to highlight its local network.
-        <br>Double-click to see an expanded view of the SNPs connecting it to other phenotypes.
-        <br>Once a node is selected, right-click on a connected node to open a detailed edge view.
-        <br>Once a node is selected, click escape to exit back to the overall network view.</p>
+      <p style="margin-bottom: 16px; font-size: 18px;">This network is a visualization of the data presented in 
+        "Diversity and scale: Genetic architecture of 2068 traits in the VA Million Veteran Program" 
+        (Anurag Verma et al, Science385,eadj1182(2024).DOI:10.1126/science.adj1182). For more information about the
+        network, click on the "About the network" button. For questions about this website
+        contact Kerry Ivey at kerry.ivey@va.gov</p>
       <div style="margin-bottom: 12px;">
         <label><input type="checkbox" id="dont-show-again"> Don't show this again</label>
       </div>
@@ -846,6 +844,10 @@ const infoText = infoContainer.append('div')
         <p>Double clicking a node opens a more detailed Node View. This is useful for exploring a 
         phenotypes specific relationship to its neighbors.</p>
         </p>
+        <p> This website is a visualization tool and download portal for the data presented in 
+        "Diversity and scale: Genetic architecture of 2068 traits in the VA Million Veteran Program" 
+        (Anurag Verma et al, Science385,eadj1182(2024).DOI:10.1126/science.adj1182). For questions about this website
+        contact Kerry Ivey at kerry.ivey@va.gov
     `);
 
 // add a download button to download data as a csv file

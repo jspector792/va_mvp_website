@@ -1,7 +1,7 @@
 // Global variables to store center phenotype and links
 let centerPheno = null;
 let links = [];
-let pThreshold = 1;
+let pThreshold = 1e-4;
 let betaThreshold = 0;
 let betaSign = 0;
 let nodes = [];
@@ -14,7 +14,7 @@ let anc1 = null; // Declare anc1 as a global variable
 let anc2 = null; // Declare anc2 as a global variable
 let betaColumn2 = null; // Declare betaColumn2 as a global variable
 let pColumn2 = null; // Declare pColumn2 as a global variable
-let pThreshold2 = 1; // Declare pThreshold2 as a global variable, default to 1
+let pThreshold2 = 1e-4; // Declare pThreshold2 as a global variable, default to 1e-4
 
 // Function to parse query parameters
 function getQueryParams() {
@@ -122,7 +122,8 @@ loadData().then((data) => {
                 const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData, pThreshold2, comparison_on_off);
                 // const categories = filteredEdges.map(l => l.target.category);
                 const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
-
+                nodes = filteredNodes;
+                links = filteredLinks;
                 renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
 
                 if (activeNode) {
@@ -189,7 +190,8 @@ loadData().then((data) => {
                 const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData, pThreshold2, comparison_on_off);
                 // const categories = filteredEdges.map(l => l.target.category);
                 const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
-
+                nodes = filteredNodes;
+                links = filteredLinks;
                 renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
 
                 if (activeNode) {
@@ -261,7 +263,8 @@ loadData().then((data) => {
             const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
             // const categories = filteredEdges.map(l => l.target.category);
             const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
-
+            nodes = filteredNodes;
+            links = filteredLinks;
             renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
 
             if (activeNode) {
@@ -343,7 +346,29 @@ loadData().then((data) => {
             </p>
         `);
 
-        // add a download button to download data as a csv file
+        // // add a download button to download data as a csv file
+        // const downloadButton = infoContainer.append('button')
+        // .text('Download Data')
+        // .style('display', 'block')
+        // .style('margin-top', '10px')
+        // .style('background', '#444')
+        // .style('color', 'white')
+        // .style('border', 'none')
+        // .style('padding', '8px 12px')
+        // .style('cursor', 'pointer')
+        // .style('border-radius', '5px')
+        // .on('click', () => {
+        //     const csvString = d3.csvFormat(data);
+        //     const blob = new Blob([csvString], { type: 'text/csv' });
+        //     const url = URL.createObjectURL(blob);
+        //     const a = document.createElement('a');
+        //     a.href = url;
+        //     a.download = 'data.csv';
+        //     document.body.appendChild(a);
+        //     a.click();
+        //     document.body.removeChild(a);
+        // });
+
         const downloadButton = infoContainer.append('button')
         .text('Download Data')
         .style('display', 'block')
@@ -355,16 +380,94 @@ loadData().then((data) => {
         .style('cursor', 'pointer')
         .style('border-radius', '5px')
         .on('click', () => {
-            const csvString = d3.csvFormat(data);
+            // Assume graphData is the object returned by initializeNetwork
+            // It contains {nodes, links, data, width, height, nodeMap}
+            const exportdata = network;
+
+            // Create a filtered array of rows from data corresponding to links in the current network
+            const linkSet = new Set(exportdata.links.map(l => `${l.source.id}|${l.target.id}`));
+            const filteredData = data.filter(d => linkSet.has(`${d.rsid}|${d.phe_id}`));
+
+            // Convert filteredData to CSV
+            const csvString = d3.csvFormat(filteredData);
+
+            // Trigger download
             const blob = new Blob([csvString], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'data.csv';
+            a.download = 'network_data.csv';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         });
+
+        // --- Persistent search bar container ---
+        let searchContainer = d3.select('body')
+            .append('div')
+            .attr('id', 'search-bar-container')
+            .style('position', 'absolute')
+            .style('top', '350px')
+            .style('left', '10px')
+            .style('background', 'transparent')
+            .style('padding', '10px')
+            .style('color', 'white');
+
+        searchContainer.html(`
+            <input type="text" id="node-search" placeholder="Search node..." style="width: 180px; padding: 5px;">
+            <div id="search-results" style="background: #222; color: white; margin-top: 2px; max-height: 150px; overflow-y: auto; display: none;"></div>
+        `);
+
+        // --- Helper function to update search results ---
+        function updateSearchResults(query) {
+            const resultsDiv = d3.select('#search-results');
+            resultsDiv.html(''); // clear previous results
+
+            if (!query) {
+                resultsDiv.style('display', 'none');
+                return;
+            }
+
+            // Filter nodes by name or id
+            const matches = nodes.filter(d =>
+                d.id.toLowerCase().includes(query.toLowerCase()) ||
+                (d.label && d.label.toLowerCase().includes(query.toLowerCase()))
+            ).slice(0, 20); // limit to top 20 matches
+
+            if (matches.length === 0) {
+                resultsDiv.style('display', 'none');
+                return;
+            }
+
+            matches.forEach(node => {
+                resultsDiv.append('div')
+                    .text(node.label || node.id)
+                    .style('padding', '2px 5px')
+                    .style('cursor', 'pointer')
+                    .on('click', () => {
+                        d3.select('#node-search').property('value', node.label || node.id);
+                        resultsDiv.style('display', 'none');
+                        // Trigger node highlight
+                        highlightNode(node, links, comparison_on_off);
+                    });
+            });
+
+            resultsDiv.style('display', 'block');
+        }
+
+        // --- Attach search input event ---
+        d3.select('#node-search').on('input', function () {
+            const query = this.value;
+            updateSearchResults(query);
+        });
+
+        // --- Optional: hide results when clicking outside ---
+        d3.select('body').on('click', function (event) {
+            if (!event.target.closest('#search-bar-container')) {
+                d3.select('#search-results').style('display', 'none');
+            }
+        });
+
 
         // add a checkbox dropdown menu called compare ancestries
         const compareAncestries = d3.select('body')
@@ -435,6 +538,8 @@ loadData().then((data) => {
                         const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
                         // const categories = filteredEdges.map(l => l.target.category);
                         const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
+                        nodes = filteredNodes;
+                        links = filteredLinks;
                         renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
                         if (activeNode) {
                             console.log('Re-highlighting active node:', activeNode);
@@ -487,7 +592,8 @@ loadData().then((data) => {
                 const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData, pThreshold2, comparison_on_off);
                 // const categories = filteredEdges.map(l => l.target.category);
                 const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
-
+                nodes = filteredNodes;
+                links = filteredLinks;
                 renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
 
                 if (activeNode) {
@@ -502,7 +608,10 @@ loadData().then((data) => {
         const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
         // const categories = filteredEdges.map(l => l.target.category);
         const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
+        nodes = filteredNodes;
+        links = filteredLinks;
         renderNetwork(filteredNodes, filteredLinks, network.data, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
+
     }
 });
 
@@ -736,6 +845,7 @@ function initializeNetwork(data, betaColumn, pColumn, betaColumn2 = null, pColum
         nodeEdgeMap.get(link.source.id).push(link.beta);
         nodeEdgeMap.get(link.target.id).push(link.beta);
     });
+    console.log('Number of links:',links.length)
     // console log the links connected to the centerPheno
     const centerNode = nodeMap.get(centerPheno);
 
@@ -754,7 +864,7 @@ function initializeNetwork(data, betaColumn, pColumn, betaColumn2 = null, pColum
     const centerLinks = links.filter(link => link.source.id === centerPheno || link.target.id === centerPheno);
     // sort the links by pvalue and take the top 100
     centerLinks.sort((a, b) => a.pvalue - b.pvalue);
-    const topLinks = centerLinks.slice(0, 100);
+    const topLinks = centerLinks.slice(0, 150);
     // fitler the rsid nodes to include only the topLinks
     const topRsidNodes = new Set();
     topLinks.forEach(link => {
@@ -794,13 +904,13 @@ function initializeNetwork(data, betaColumn, pColumn, betaColumn2 = null, pColum
     });
     console.log('nodeDegrees:', nodeDegrees);
     // sort the nodeDegrees by value and take the top 100
-    const topNodesByDegree = Array.from(nodeDegrees.entries()).sort((a, b) => b[1] - a[1]).slice(0, 100);
-    // make a set of the top nodes
-    const topNodesSet = new Set(topNodesByDegree.map(d => d[0]));
-    // filter the nodes to include only the top nodes
-    nodes = nodes.filter(node => topNodesSet.has(node.id) || node.id.startsWith('rs') || node.id === centerPheno);
-    // filter the links to include only the top nodes
-    links = links.filter(link => topNodesSet.has(link.source.id) || topNodesSet.has(link.target.id) || link.source.id === centerPheno || link.target.id === centerPheno);
+    // const topNodesByDegree = Array.from(nodeDegrees.entries()).sort((a, b) => b[1] - a[1]).slice(0, 100);
+    // // make a set of the top nodes
+    // const topNodesSet = new Set(topNodesByDegree.map(d => d[0]));
+    // // filter the nodes to include only the top nodes
+    // nodes = nodes.filter(node => topNodesSet.has(node.id) || node.id.startsWith('rs') || node.id === centerPheno);
+    // // filter the links to include only the top nodes
+    // links = links.filter(link => topNodesSet.has(link.source.id) || topNodesSet.has(link.target.id) || link.source.id === centerPheno || link.target.id === centerPheno);
 
 
     if (nodeMap.has(centerPheno) && validNodes.has(centerPheno)) {
@@ -906,7 +1016,7 @@ function renderNetwork(nodes, links, data, width, height, centerPheno, centerX, 
         .append('circle')
         .attr('cx', d => d?.x || 0) // Check for undefined x
         .attr('cy', d => d?.y || 0) // Check for undefined y
-        .attr('r', d => d.id === centerPheno ? 15 : (d.id.startsWith('rs') ? 10 : 10))
+        .attr('r', d => d.id === centerPheno ? 15 : (d.id.startsWith('rs') ? 5 : 8))
         .attr('fill', d => d.id === centerPheno ? nodeMap.get(centerPheno)?.color : d?.color || 'gray')
         .on('dblclick', (event, d) => {
             // if the node is not an rsid node:
