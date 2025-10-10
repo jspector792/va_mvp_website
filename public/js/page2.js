@@ -2,7 +2,7 @@
 let centerPheno = null;
 let links = [];
 let pThreshold = 1e-4;
-let betaThreshold = 0;
+let betaThreshold = 0.01;
 let betaSign = 0;
 let nodes = [];
 let activeNode = null;
@@ -128,7 +128,7 @@ loadData().then((data) => {
 
                 if (activeNode) {
                     console.log('Re-highlighting active node:', activeNode);
-                    highlightNode(activeNode, filteredEdges, comparison_on_off);
+                    highlightNode(activeNode, filteredLinks, comparison_on_off);
                 }
             }, 200); // 200ms debounce delay
         };
@@ -196,7 +196,7 @@ loadData().then((data) => {
 
                 if (activeNode) {
                     console.log('Re-highlighting active node:', activeNode);
-                    highlightNode(activeNode, filteredEdges, comparison_on_off);
+                    highlightNode(activeNode, filteredLinks, comparison_on_off);
                 }
             }, 200); // 200ms debounce delay
         }
@@ -227,69 +227,69 @@ loadData().then((data) => {
         d3.select('#pvalue-input2').style('opacity', 0.5);
 
         // Add a beta threshold slider with text input
-        const betaThresholdSlider = d3.select('body')
-            .append('div')
-            .style('position', 'absolute')
-            .style('top', '130px')
-            .style('left', '10px')
-            .style('background', 'transparent')
-            .style('padding', '10px')
-            .style('color', 'white')
-            .html(`
-                <div>
-                    <label for="beta-threshold-slider">Select beta threshold:</label>
-                </div>
-                <div style="margin-top: 5px;">
-                    <input type="range" id="beta-threshold-slider" name="beta-threshold-slider" min="0" max="1" step="0.01" value="0">
-                    <input type="number" id="beta-input" step="0.01" min="0" max="1" value="0">
-                    <span id="beta-threshold">0</span>
-                </div>
-            `);
+        // const betaThresholdSlider = d3.select('body')
+        //     .append('div')
+        //     .style('position', 'absolute')
+        //     .style('top', '130px')
+        //     .style('left', '10px')
+        //     .style('background', 'transparent')
+        //     .style('padding', '10px')
+        //     .style('color', 'white')
+        //     .html(`
+        //         <div>
+        //             <label for="beta-threshold-slider">Select beta threshold:</label>
+        //         </div>
+        //         <div style="margin-top: 5px;">
+        //             <input type="range" id="beta-threshold-slider" name="beta-threshold-slider" min="0" max="1" step="0.01" value="0">
+        //             <input type="number" id="beta-input" step="0.01" min="0" max="1" value="0">
+        //             <span id="beta-threshold">0</span>
+        //         </div>
+        //     `);
 
 
-        let debounceTimerBeta;
-        const updateBetaThreshold = (value) => {
-        betaThreshold = value;
-        d3.select('#beta-threshold').text(betaThreshold);
+        // let debounceTimerBeta;
+        // const updateBetaThreshold = (value) => {
+        // betaThreshold = value;
+        // d3.select('#beta-threshold').text(betaThreshold);
 
-        clearTimeout(debounceTimerBeta);
-        debounceTimerBeta = setTimeout(() => {
-            if (!graphData) {
-                console.warn("Data is not loaded yet.");
-                return;
-            }
+        // clearTimeout(debounceTimerBeta);
+        // debounceTimerBeta = setTimeout(() => {
+        //     if (!graphData) {
+        //         console.warn("Data is not loaded yet.");
+        //         return;
+        //     }
 
-            const network = initializeNetwork(graphData, betaColumn, pColumn);
-            const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
-            // const categories = filteredEdges.map(l => l.target.category);
-            const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
-            nodes = filteredNodes;
-            links = filteredLinks;
-            renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
+        //     const network = initializeNetwork(graphData, betaColumn, pColumn);
+        //     const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
+        //     // const categories = filteredEdges.map(l => l.target.category);
+        //     const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
+        //     nodes = filteredNodes;
+        //     links = filteredLinks;
+        //     renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
 
-            if (activeNode) {
-                highlightNode(activeNode, filteredEdges, comparison_on_off);
-            }
-        }, 200); // 200ms debounce delay
-        };
+        //     if (activeNode) {
+        //         highlightNode(activeNode, filteredLinks, comparison_on_off);
+        //     }
+        // }, 200); // 200ms debounce delay
+        // };
 
-        // Initialize the slider and input with the value from the query parameter
-        const initialBeta = 0;
-        d3.select('#beta-threshold-slider').property('value', initialBeta);
-        d3.select('#beta-input').property('value', initialBeta);
-        updateBetaThreshold(initialBeta);
+        // // Initialize the slider and input with the value from the query parameter
+        // const initialBeta = 0.0;
+        // d3.select('#beta-threshold-slider').property('value', initialBeta);
+        // d3.select('#beta-input').property('value', initialBeta);
+        // updateBetaThreshold(initialBeta);
 
-        d3.select('#beta-threshold-slider').on('input', function () {
-        const value = this.valueAsNumber;
-        d3.select('#beta-input').property('value', value);
-        updateBetaThreshold(value);
-        });
+        // d3.select('#beta-threshold-slider').on('input', function () {
+        // const value = this.valueAsNumber;
+        // d3.select('#beta-input').property('value', value);
+        // updateBetaThreshold(value);
+        // });
 
-        d3.select('#beta-input').on('input', function () {
-        const value = this.valueAsNumber;
-        d3.select('#beta-threshold-slider').property('value', value);
-        updateBetaThreshold(value);
-        });
+        // d3.select('#beta-input').on('input', function () {
+        // const value = this.valueAsNumber;
+        // d3.select('#beta-threshold-slider').property('value', value);
+        // updateBetaThreshold(value);
+        // });
 
         // Create a container div for the button and info text
         const infoContainer = d3.select('body')
@@ -407,7 +407,7 @@ loadData().then((data) => {
             .append('div')
             .attr('id', 'search-bar-container')
             .style('position', 'absolute')
-            .style('top', '350px')
+            .style('top', '320px')
             .style('left', '10px')
             .style('background', 'transparent')
             .style('padding', '10px')
@@ -473,7 +473,7 @@ loadData().then((data) => {
         const compareAncestries = d3.select('body')
             .append('div')
             .style('position', 'absolute')
-            .style('top', '185px')
+            .style('top', '145px')
             .style('left', '10px')
             .style('background', 'transparent')
             .style('padding', '10px')
@@ -543,7 +543,7 @@ loadData().then((data) => {
                         renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
                         if (activeNode) {
                             console.log('Re-highlighting active node:', activeNode);
-                            highlightNode(activeNode, filteredEdges, comparison_on_off);
+                            highlightNode(activeNode, filteredLinks, comparison_on_off);
                         }
                     }
                 }
@@ -597,7 +597,7 @@ loadData().then((data) => {
                 renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, centerPheno, network.centerX, network.centerY, network.nodeMap, comparison_on_off);
 
                 if (activeNode) {
-                    highlightNode(activeNode, filteredEdges, comparison_on_off);
+                    highlightNode(activeNode, filteredLinks, comparison_on_off);
                 }
             }
         });

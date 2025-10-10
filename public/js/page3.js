@@ -3,7 +3,7 @@ let leftPheno = null;
 let rightPheno = null;
 let links = [];
 let pThreshold = 1e-4;
-let betaThreshold = 0;
+let betaThreshold = 0.01;
 let betaSign = 0;
 let nodes = [];
 let activeNode = null;
@@ -74,26 +74,26 @@ async function loadData() {
         const rightRSIDs = new Set(data.filter(d => d.phe_id === rightPheno).map(d => d.rsid));
         // take the intersection of the two sets
         const commonRSIDs = Array.from(leftRSIDs).filter(rsid => rightRSIDs.has(rsid));
-        // if commonRSIDs is longer than 100, sort by chrom and take 100 evenly spaced values
-        if (commonRSIDs.length > 100) {
-            // sort commonRSIDs by chrom
-            commonRSIDs.sort((a, b) => {
-                const chromA = data.find(d => d.rsid === a).chrom;
-                const chromB = data.find(d => d.rsid === b).chrom;
-                return chromA - chromB;
-            }
-            );
-            // take every nth value, where n is the length of commonRSIDs divided by 100
-            const n = Math.ceil(commonRSIDs.length / 100);
-            const filteredRSIDs = [];
-            for (let i = 0; i < commonRSIDs.length; i += n) {
-                filteredRSIDs.push(commonRSIDs[i]);
-            }
-            // set commonRSIDs to the filteredRSIDs
-            commonRSIDs.length = 0; // Clear the original array
-            commonRSIDs.push(...filteredRSIDs); // Add the filtered values
-        }
-        console.log('Number of common rsids:', commonRSIDs.length);
+        // // if commonRSIDs is longer than 100, sort by chrom and take 100 evenly spaced values
+        // if (commonRSIDs.length > 100) {
+        //     // sort commonRSIDs by chrom
+        //     commonRSIDs.sort((a, b) => {
+        //         const chromA = data.find(d => d.rsid === a).chrom;
+        //         const chromB = data.find(d => d.rsid === b).chrom;
+        //         return chromA - chromB;
+        //     }
+        //     );
+        //     // take every nth value, where n is the length of commonRSIDs divided by 100
+        //     const n = Math.ceil(commonRSIDs.length / 100);
+        //     const filteredRSIDs = [];
+        //     for (let i = 0; i < commonRSIDs.length; i += n) {
+        //         filteredRSIDs.push(commonRSIDs[i]);
+        //     }
+        //     // set commonRSIDs to the filteredRSIDs
+        //     commonRSIDs.length = 0; // Clear the original array
+        //     commonRSIDs.push(...filteredRSIDs); // Add the filtered values
+        // }
+        // console.log('Number of common rsids:', commonRSIDs.length);
 
         // filter the data for the common rsids AND the left and right phenotypes
         data = data.filter(d => commonRSIDs.includes(d.rsid) && (d.phe_id === leftPheno || d.phe_id === rightPheno));
@@ -173,9 +173,9 @@ loadData().then((data) => {
                 links = network.links;
                 const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData, pThreshold2, comparison_on_off);
                 // const categories = filteredEdges.map(l => l.target.category);
-                // const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
+                const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
 
-                renderNetwork(network.nodes, filteredEdges, graphData, network.width, network.height, leftPheno,rightPheno, network.nodeMap, comparison_on_off);
+                renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, leftPheno,rightPheno, network.nodeMap, comparison_on_off);
 
             }, 200); // 200ms debounce delay
         };
@@ -237,9 +237,9 @@ loadData().then((data) => {
                 links = network.links;
                 const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData, pThreshold2, comparison_on_off);
                 // const categories = filteredEdges.map(l => l.target.category);
-                // const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
+                const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
 
-                renderNetwork(network.nodes, filteredEdges, graphData, network.width, network.height, leftPheno,rightPheno, network.nodeMap, comparison_on_off);
+                renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, leftPheno,rightPheno, network.nodeMap, comparison_on_off);
             }, 200); // 200ms debounce delay
         }
 
@@ -269,63 +269,62 @@ loadData().then((data) => {
         d3.select('#pvalue-input2').style('opacity', 0.5);
 
         // Add a beta threshold slider with text input
-        const betaThresholdSlider = d3.select('body')
-        .append('div')
-        .style('position', 'absolute')
-        .style('top', '150px')
-        .style('left', '10px')
-        .style('background', 'transparent')
-        .style('padding', '10px')
-        .style('color', 'white')
-        .html(`
-            <label for="beta-threshold-slider">Select beta threshold:</label>
-            <input type="range" id="beta-threshold-slider" name="beta-threshold-slider" min="0" max="1" step="0.01" value="0">
-            <input type="number" id="beta-input" step="0.01" min="0" max="1" value="0">
-            <span id="beta-threshold">0</span>
-        `);
+        // const betaThresholdSlider = d3.select('body')
+        // .append('div')
+        // .style('position', 'absolute')
+        // .style('top', '150px')
+        // .style('left', '10px')
+        // .style('background', 'transparent')
+        // .style('padding', '10px')
+        // .style('color', 'white')
+        // .html(`
+        //     <label for="beta-threshold-slider">Select beta threshold:</label>
+        //     <input type="range" id="beta-threshold-slider" name="beta-threshold-slider" min="0" max="1" step="0.01" value="0">
+        //     <input type="number" id="beta-input" step="0.01" min="0" max="1" value="0">
+        //     <span id="beta-threshold">0</span>
+        // `);
 
-        let debounceTimerBeta;
-        const updateBetaThreshold = (value) => {
-        betaThreshold = value;
-        d3.select('#beta-threshold').text(betaThreshold);
+        // let debounceTimerBeta;
+        // const updateBetaThreshold = (value) => {
+        // betaThreshold = value;
+        // d3.select('#beta-threshold').text(betaThreshold);
 
-        clearTimeout(debounceTimerBeta);
-        debounceTimerBeta = setTimeout(() => {
-            if (!graphData) {
-                console.warn("Data is not loaded yet.");
-                return;
-            }
+        // clearTimeout(debounceTimerBeta);
+        // debounceTimerBeta = setTimeout(() => {
+        //     if (!graphData) {
+        //         console.warn("Data is not loaded yet.");
+        //         return;
+        //     }
 
-            const network = initializeNetwork(graphData, betaColumn, pColumn);
-            nodes = network.nodes;
-            links = network.links;
-            const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
-            // const categories = filteredEdges.map(l => l.target.category);
-            // const filteredNodes = updateNodes(categories, network.nodes);
+        //     const network = initializeNetwork(graphData, betaColumn, pColumn);
+        //     nodes = network.nodes;
+        //     links = network.links;
+        //     const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
+        //     const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
 
-            renderNetwork(network.nodes, filteredEdges, graphData, network.width, network.height, leftPheno, rightPheno, network.nodeMap, comparison_on_off);
+        //     renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, leftPheno, rightPheno, network.nodeMap, comparison_on_off);
 
-        }, 200); // 200ms debounce delay
-        };
+        // }, 200); // 200ms debounce delay
+        // };
 
-        // Initialize the slider and input with the value from the query parameter
-        const initialBeta = 0;
-        d3.select('#beta-threshold-slider').property('value', initialBeta);
-        d3.select('#beta-input').property('value', initialBeta);
-        updateBetaThreshold(initialBeta);
-        d3.select('#beta-threshold').text(betaThreshold);
+        // // Initialize the slider and input with the value from the query parameter
+        // const initialBeta = 0.0;
+        // d3.select('#beta-threshold-slider').property('value', initialBeta);
+        // d3.select('#beta-input').property('value', initialBeta);
+        // updateBetaThreshold(initialBeta);
+        // d3.select('#beta-threshold').text(betaThreshold);
 
-        d3.select('#beta-threshold-slider').on('input', function () {
-        const value = this.valueAsNumber;
-        d3.select('#beta-input').property('value', value);
-        updateBetaThreshold(value);
-        });
+        // d3.select('#beta-threshold-slider').on('input', function () {
+        // const value = this.valueAsNumber;
+        // d3.select('#beta-input').property('value', value);
+        // updateBetaThreshold(value);
+        // });
 
-        d3.select('#beta-input').on('input', function () {
-        const value = this.valueAsNumber;
-        d3.select('#beta-threshold-slider').property('value', value);
-        updateBetaThreshold(value);
-        });
+        // d3.select('#beta-input').on('input', function () {
+        // const value = this.valueAsNumber;
+        // d3.select('#beta-threshold-slider').property('value', value);
+        // updateBetaThreshold(value);
+        // });
 
 
         // Create a container div for the button and info text
@@ -381,7 +380,7 @@ loadData().then((data) => {
             .append('div')
             .attr('id', 'search-bar-container')
             .style('position', 'absolute')
-            .style('top', '350px')
+            .style('top', '320px')
             .style('left', '10px')
             .style('background', 'transparent')
             .style('padding', '10px')
@@ -502,9 +501,8 @@ loadData().then((data) => {
         // add a checkbox dropdown menu called compare ancestries
         const compareAncestries = d3.select('body')
             .append('div')
-            
             .style('position', 'absolute')
-            .style('top', '185px')
+            .style('top', '145px')
             .style('left', '10px')
             .style('background', 'transparent')
             .style('padding', '10px')
@@ -560,24 +558,26 @@ loadData().then((data) => {
 
                 if (data) {
 
-                    ancestryLower = this.value.toLowerCase(); // Update ancestryLower when the selection changes
+                    ancestryLower = checked[0].value.toLowerCase(); // Update ancestryLower when the selection changes
                     console.log(`Ancestry selected: ${ancestryLower}`);
                     betaColumn = `beta.${ancestryLower}`;
                     pColumn = `pval.${ancestryLower}`;
 
                     // Call the async function and use the data when it's ready
                     if (data) {
+                        console.log(`Ancestry selected: ${ancestryLower}`);
                         // Filter the phe_id column to only include the leftPheno
                         const leftPhenoData = data.filter(d => d.phe_id === leftPheno);
 
                         // If the beta column contains only NaN values, alert the user
                         
                         const network = initializeNetwork(data, betaColumn, pColumn);
-                        nodes = network.nodes;
-                        links = network.links;
+                
                         const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
-
-                        renderNetwork(network.nodes, filteredEdges, graphData, network.width, network.height, leftPheno, rightPheno, network.nodeMap, comparison_on_off);
+                        const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
+                        nodes = filteredNodes;
+                        links = filteredLinks;
+                        renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, leftPheno, rightPheno, network.nodeMap, comparison_on_off);
                     }
                 }
             }
@@ -626,9 +626,9 @@ loadData().then((data) => {
                 links = network.links;
                 const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData, pThreshold2, comparison_on_off);
                 // const categories = filteredEdges.map(l => l.target.category);
-                // const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
+                const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
 
-                renderNetwork(network.nodes, filteredEdges, graphData, network.width, network.height, leftPheno,rightPheno, network.nodeMap, comparison_on_off);
+                renderNetwork(filteredNodes, filteredLinks, graphData, network.width, network.height, leftPheno,rightPheno, network.nodeMap, comparison_on_off);
             }
         });
 
@@ -638,8 +638,8 @@ loadData().then((data) => {
             links = network.links;
             const filteredEdges = updateEdges(pThreshold, betaThreshold, betaSign, network.links, graphData);
             // const categories = filteredEdges.map(l => l.target.category);
-            // const filteredNodes = updateNodes(categories, network.nodes);
-            renderNetwork(network.nodes, network.links, network.data, network.width, network.height, leftPheno,rightPheno, network.nodeMap);
+            const { nodes: filteredNodes, edges: filteredLinks } = updateNodes(filteredEdges, network.nodes);
+            renderNetwork(filteredNodes, filteredLinks, network.data, network.width, network.height, leftPheno,rightPheno, network.nodeMap,comparison_on_off);
         }
         
 });
@@ -667,6 +667,48 @@ function updateEdges(pThreshold, betaThreshold, betaSign, links, data, pThreshol
     // return the filtered edges
     return filteredEdgesDirection;
     }
+
+function updateNodes(edges, nodes) {
+    // find all the nodes that have ids starting with rs
+    const rsidNodes = nodes.filter(node => node.id.startsWith('rs'));
+    // eliminate any rsid nodes that have less than 2 edges
+    const rsidNodesFiltered = rsidNodes.filter(node => {
+        const degree = edges.reduce((count, edge) => {
+            return count + ((edge.source.id === node.id || edge.target.id === node.id) ? 1 : 0);
+        }, 0);
+        return degree >= 2;
+    });
+
+    // find all the nodes that have ids not starting with rs
+    const pheNodes = nodes.filter(node => !node.id.startsWith('rs'));
+    // filter phenodes to include only those with at least one edge to a node in rsidNodesFiltered
+    const pheNodesFiltered = pheNodes.filter(node => {
+        return edges.some(edge => {
+            if (edge.source.id === node.id) {
+                return rsidNodesFiltered.some(rsNode => rsNode.id === edge.target.id);
+            } else if (edge.target.id === node.id) {
+                return rsidNodesFiltered.some(rsNode => rsNode.id === edge.source.id);
+            }
+            return false;
+        });
+    }
+    );
+    // combine the filtered rsidNodes and pheNodes
+    const filteredNodes = rsidNodesFiltered.concat(pheNodesFiltered);
+
+    const nodeIdSet = new Set(filteredNodes.map(n => n.id));
+    const filteredEdges = edges.filter(edge =>
+        nodeIdSet.has(edge.source.id) && nodeIdSet.has(edge.target.id)
+    );
+
+
+    // return filtered nodes and edges
+    return {
+        nodes: filteredNodes,
+        edges: filteredEdges
+    }
+
+}   
 
 
 // Function to highlight a selected node for 5 seconds
@@ -758,6 +800,9 @@ function initializeNetwork(data, betaColumn, pColumn, betaColumn2=null, pColumn2
         });
     }
 
+    // filter out edges that have a nan beta value
+    links = links.filter(l => !isNaN(l.beta));
+
     // Identify nodes that only have NaN beta edges 
     // NOTE these next two blocks should be redundant but I'm not messing with them for now
     const nodeEdgeMap = new Map();
@@ -774,9 +819,6 @@ function initializeNetwork(data, betaColumn, pColumn, betaColumn2=null, pColumn2
             validNodes.add(nodeId);
         }
     });
-
-    // make a phenodes constant that is the nodes that have an id that does not start with rs
-    const PheNodes = Array.from(nodeMap.values()).filter(node => !node.id.startsWith('rs'));
 
     // Filter nodes and links to remove those only connected by NaN beta edges
     let nodes = Array.from(nodeMap.values()).filter(node => validNodes.has(node.id));

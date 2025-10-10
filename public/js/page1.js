@@ -87,11 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .style('color', 'white');
 
         searchContainer.html(`
-            <div>
-            <label for="search-bar">Search Node:</label>
-            </div>
-            <input id="search-bar" type="text" placeholder="Enter node label">
-            <ul id="search-dropdown" style="list-style: none; margin: 0; padding: 0; max-height: 150px; overflow-y: auto; background: #46464d; color: white; display: none;"></ul>
+            <input type="text" id="node-search" placeholder="Search node..." style="width: 180px; padding: 5px;">
+            <div id="search-results" style="background: #222; color: white; margin-top: 2px; max-height: 150px; overflow-y: auto; display: none;"></div>
         `);
 
         // Initialize the slider here
@@ -742,9 +739,8 @@ if (!localStorage.getItem('welcomeDismissed')) {
     .html(`
       <p style="margin-bottom: 16px; font-size: 18px;">This network is a visualization of the data presented in 
         "Diversity and scale: Genetic architecture of 2068 traits in the VA Million Veteran Program" 
-        (Anurag Verma et al, Science385,eadj1182(2024).DOI:10.1126/science.adj1182). For more information about the
-        network, click on the "About the network" button. For questions about this website
-        contact Kerry Ivey at kerry.ivey@va.gov</p>
+        (Anurag Verma et al, Science, DOI:10.1126). For more information about the
+        network, click on the "About the network" button. </p> 
       <div style="margin-bottom: 12px;">
         <label><input type="checkbox" id="dont-show-again"> Don't show this again</label>
       </div>
