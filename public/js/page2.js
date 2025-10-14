@@ -685,7 +685,7 @@ function updateNodes(edges, nodes) {
 }   
 
 // Function to highlight a selected node and its relevant edges
-function highlightNode(activeNode, links, comparison_on_off = false) {
+function highlightNode(aNode, links, comparison_on_off = false) {
 
     console.log('comparison_on_off:', comparison_on_off);
     if (!centerPheno || !links.length) {
@@ -694,25 +694,25 @@ function highlightNode(activeNode, links, comparison_on_off = false) {
     }
 
     // make a list of the nodes that are connected to the active node
-    const connected_edges = links.filter(l => l.source.id === activeNode.id || l.target.id === activeNode.id);
+    const connected_edges = links.filter(l => l.source.id === aNode.id || l.target.id === aNode.id);
     // take whichever end of the link is the active node and make a list of the other end
-    const connectedNodes = connected_edges.map(l => l.source.id === activeNode.id ? l.target.id : l.source.id);
+    const connectedNodes = connected_edges.map(l => l.source.id === aNode.id ? l.target.id : l.source.id);
     
-    const isPhenotype = !activeNode.id.startsWith('rs');
-    // const isRSID = activeNode.id.startsWith('rs');
+    const isPhenotype = !aNode.id.startsWith('rs');
+    // const isRSID = aNode.id.startsWith('rs');
 
-    // Reduce opacity of all nodes except activeNode, its neighbors, and center phenotype
+    // Reduce opacity of all nodes except aNode, its neighbors, and center phenotype
     d3.selectAll('circle')
         .transition().duration(300)
         .style('opacity', d => {
-            if (activeNode.id === centerPheno) {
+            if (aNode.id === centerPheno) {
                 // do nothing
-                console.log(activeNode.id === centerPheno);
+                console.log(aNode.id === centerPheno);
                 return 1;
             } else {
-                return d.id === activeNode.id || d.id === centerPheno || links.some(l =>
-                    (l.source.id === activeNode.id && l.target.id === d.id) ||
-                    (l.target.id === activeNode.id && l.source.id === d.id))
+                return d.id === aNode.id || d.id === centerPheno || links.some(l =>
+                    (l.source.id === aNode.id && l.target.id === d.id) ||
+                    (l.target.id === aNode.id && l.source.id === d.id))
                     ? 1
                     : 0.3;
             }
@@ -724,7 +724,7 @@ function highlightNode(activeNode, links, comparison_on_off = false) {
     d3.selectAll('line')
         .transition().duration(300)
         .style('opacity', d => {
-            if (activeNode.id === centerPheno) {
+            if (aNode.id === centerPheno) {
                 // make all edges visible
                 return 0.5;
             }
@@ -735,11 +735,11 @@ function highlightNode(activeNode, links, comparison_on_off = false) {
                 } else {
                     visible_opacity = 1;
                 }
-                if (d.source.id === activeNode.id || d.target.id === activeNode.id) {
+                if (d.source.id === aNode.id || d.target.id === aNode.id) {
                     return visible_opacity;
                 }
                 if (isPhenotype) {
-                    if (d.source.id === activeNode.id || d.target.id === activeNode.id) {
+                    if (d.source.id === aNode.id || d.target.id === aNode.id) {
                         return visible_opacity;
                     }
 
