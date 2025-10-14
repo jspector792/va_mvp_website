@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="search-results" style="background: #222; color: white; margin-top: 2px; max-height: 150px; overflow-y: auto; display: none;"></div>
         `);
 
+
         // Initialize the slider here
         const degreeFilterContainer = d3.select('body')
             .append('div')
@@ -145,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 filteredNodes.some(n => n.id === l.target)    // Target node passes filter
             );
 
-            // Update node opacity to reflect filtering
+            // Update node opacity to reflect filtering 
             node.style('opacity', n => filteredNodes.some(fn => fn.id === n.id) ? 1 : 0.2);
 
             // Call highlightNode to reapply the node highlighting logic
@@ -153,8 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        const searchBar = d3.select('#search-bar');
-        const dropdown = d3.select('#search-dropdown');
+        const searchBar = d3.select('#node-search');
+        const dropdown = d3.select('#search-results');
 
         // Filter dropdown options as user types
         searchBar.on('input', function () {
@@ -737,7 +738,7 @@ if (!localStorage.getItem('welcomeDismissed')) {
     .style('line-height', '1.6')
     .style('text-align', 'center')
     .html(`
-      <p style="margin-bottom: 16px; font-size: 18px;">This network is a visualization of the data presented in 
+      <p style="margin-bottom: 16px; font-size: 16px;">This network is a visualization of the data presented in 
         "Diversity and scale: Genetic architecture of 2068 traits in the VA Million Veteran Program" 
         (Anurag Verma et al, Science, DOI:10.1126). For more information about the
         network, click on the "About the network" button. </p> 
