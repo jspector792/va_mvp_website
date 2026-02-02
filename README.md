@@ -1,5 +1,5 @@
 # VA MVP Data visualization website
-This repository is deployed through railway at (insert link here)
+This repository is deployed through railway at [appliedintegrativeanalytics.com](appliedintegrativeanalytics.com)
 ## Code structure and logic
 The website has 3 pages, each has a .js file in ```public/js```. The following is meant as a high level overview of the code logic, not an in depth guide. 
 ### Page 1
