@@ -844,7 +844,7 @@ const infoText = infoContainer.append('div')
         <p> This website is a visualization tool and download portal for the data presented in 
         "Diversity and scale: Genetic architecture of 2068 traits in the VA Million Veteran Program" 
         (Anurag Verma et al, Science385,eadj1182(2024).DOI:10.1126/science.adj1182). For questions about this website
-        contact Kerry Ivey at kerry.ivey@va.gov
+        contact the MVP Data Core at mvpdatacore@va.gov
     `);
 
 // add a download button to download data as a csv file
