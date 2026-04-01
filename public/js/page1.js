@@ -859,8 +859,8 @@ const infoText = infoContainer.append('div')
     .style('cursor', 'pointer')
     .style('border-radius', '5px')
     .on('click', () => {
-        // redirect people to dropbox
-        window.open('https://www.dropbox.com/scl/fo/214fw3kkq8qy8cyoey14y/AFy-u3ltk3sBKVSif4YfE_8?rlkey=f268undsc9qh0v5fcf6h9qkiy&st=nc1hh56k&dl=0', '_blank');
+        // redirect people to dbgap
+        window.open('https://ftp.ncbi.nlm.nih.gov/dbgap/studies/phs002453/analyses/', '_blank');
 
     });
 
